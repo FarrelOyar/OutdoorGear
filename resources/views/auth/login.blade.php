@@ -50,8 +50,10 @@
                     class="w-full bg-blue-500 hover:bg-blue-700 p-3 rounded-lg text-white mt-4">Login</button>
             </form>
             <p class="text-center text-sm text-white  mt-4 block">Anda Belum punya akun? daftar <a href="/register"
-                    class="text-blue-700 hover:underline">disini</a></p>
-        </div>
+                    class="text-blue-700 hover:underline">disini</a><br>
+                    <a href="../"
+                    class="text-blue-700 hover:underline">kembali</a></p>
+                </div>
     </div>
 </body>
 

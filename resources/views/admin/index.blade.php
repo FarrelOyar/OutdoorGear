@@ -1,5 +1,14 @@
 @extends('layouts.admin')
 @section('container')
+    @if (session('validationError'))
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Ditambahkan!!!',
+                text: "{{ session('validationError') }}"
+            });
+        </script>
+    @endif
     @if (session('loginSuccess'))
         <script>
             Swal.fire({
@@ -85,8 +94,8 @@
                                 <td>{{ $detail->barang->nama_barang }}</td>
                                 <td>{{ $detail->qty }}</td>
                                 @if ($isFirst)
-                                    <td>{{$transaction->tanggal_keluar->format('d-m-Y')}}</td>
-                                    <td>{{$transaction->tanggal_kembali->format('d-m-Y')}}</td>
+                                    <td>{{ $transaction->tanggal_keluar->format('d-m-Y') }}</td>
+                                    <td>{{ $transaction->tanggal_kembali->format('d-m-Y') }}</td>
                                     <td class="align-top" rowspan="{{ $rowCount }}">
                                         <button data-bs-toggle="modal"
                                             data-bs-target="#selesaitransaksi{{ $transaction->id }}"
@@ -113,7 +122,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">Tambah Barang</h5>
+                    <h5 class="modal-title" id="staticBackdropLabel">Tambah Denda</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -198,7 +207,6 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                {{-- {{ $t->no_resi }} --}}
                                 <div class="modal-footer">
                                     <button type="submit" value="Submit" class="btn btn-primary">Selesaikan</button>
                             </form>

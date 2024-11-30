@@ -1,34 +1,7 @@
-@extends('layouts.user')
-@section('container')
-    @if (session('loginSuccess'))
-        <script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Welcome!',
-                text: "{{ session('loginSuccess') }}",
-                showConfirmButton: false,
-                timer: 2000
-            });
-        </script>
-    @endif
-    @if (session('cartSuccess'))
-        <script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Added to Cart!',
-                text: "{{ session('cartSuccess') }}",
-                showConfirmButton: false,
-                timer: 2000
-            });
-        </script>
-    @endif
+@extends('layouts.guest')
+@section('guest')
     <div class="bg-gray-50 min-h-screen">
         <div class="container mx-auto px-4 py-8">
-            <div class="mb-12 text-center">
-                <h1 class="text-4xl font-bold text-gray-800 mb-4">Selamat Datang di OutdoorGear Rent!</h1>
-                <p class="text-gray-600 max-w-2xl mx-auto">Temukan berbagai barang berkualitas tinggi kami yang tersedia
-                    untuk disewa dengan harga bersaing!</p>
-            </div>
             <div class="my-4">
                 <form class="max-w-md mx-auto" action="" method="GET">
                     <label for="default-search"
@@ -74,29 +47,6 @@
                             <p class="text-gray-600 text-sm mb-4 flex-grow" id="description{{ $b->id }}">
                                 {{ Str::limit($b->deskripsi, 100) }}
                             </p>
-                            <div class="mt-auto">
-                                <form action="add_cart" method="post">
-                                    @csrf
-                                    <input type="hidden" name="id_user" value="{{ auth()->user()->id }}">
-                                    <input type="hidden" name="id_barang" value="{{ $b->id }}">
-                                    @if ($b->stock - $b->barang_keluar > 0)
-                                        <button type="submit"
-                                            class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-300 flex items-center justify-center">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                                            </svg>
-                                            Tambahkan ke Keranjang
-                                        </button>
-                                    @else
-                                        <button disabled
-                                            class="w-full bg-gray-300 text-gray-500 py-2 rounded-lg cursor-not-allowed">
-                                            Stock Habis
-                                        </button>
-                                    @endif
-                                </form>
-                            </div>
                         </div>
                     </div>
                 @endforeach

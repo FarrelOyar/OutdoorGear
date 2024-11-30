@@ -90,8 +90,6 @@
                     <span id="totalPembayaran" class="font-bold text-lg text-orange-600">Rp. 0</span>
                 </div>
             </div>
-
-            <!-- Hidden inputs tetap sama -->
             @php
                 $i = 0;
             @endphp
@@ -115,7 +113,6 @@
         </form>
     </div>
     <script>
-        // Fungsi untuk format number ke format rupiah
         function formatRupiah(angka) {
             return new Intl.NumberFormat('id-ID', {
                 style: 'currency',
@@ -125,25 +122,20 @@
             }).format(angka);
         }
 
-        // Fungsi untuk menghitung selisih hari
         function hitungSelisihHari(tglKeluar, tglKembali) {
             const oneDay = 24 * 60 * 60 * 1000;
             const firstDate = new Date(tglKeluar);
             const secondDate = new Date(tglKembali);
-            
-            // Mengatur waktu ke tengah malam untuk perhitungan yang akurat
             firstDate.setHours(0, 0, 0, 0);
             secondDate.setHours(0, 0, 0, 0);
-            
-            // Hitung selisih dan tambahkan 1 hari jika tanggal sama
+
             const diffDays = Math.round((secondDate - firstDate) / oneDay);
-            if(diffDays==0){
-                return diffDays + 1; // Tambah 1 karena hari pertama dihitung
+            if (diffDays == 0) {
+                return diffDays + 1;
             }
-            return diffDays; // Tambah 1 karena hari pertama dihitung
+            return diffDays;
         }
 
-        // Fungsi untuk update total pembayaran
         function updateTotal(startDate, endDate) {
             const hargaPerHari = parseFloat(document.getElementById('hargaPerHari').value);
 
@@ -155,44 +147,35 @@
                 document.getElementById('totalPembayaran').textContent = formatRupiah(totalPembayaran);
             }
         }
-
-        // Inisialisasi flatpickr untuk tanggal keluar
         const tglkeluarPicker = flatpickr("#tglkeluar", {
             dateFormat: "Y-m-d",
             minDate: "today",
             onChange: function(selectedDates, dateStr) {
-                // Update tanggal minimum untuk tanggal kembali
                 tglkembaliPicker.set('minDate', dateStr);
-                
-                // Reset tanggal kembali jika lebih kecil dari tanggal keluar
-                if(tglkembaliPicker.selectedDates[0] && tglkembaliPicker.selectedDates[0] < selectedDates[0]) {
+                if (tglkembaliPicker.selectedDates[0] && tglkembaliPicker.selectedDates[0] < selectedDates[0]) {
                     tglkembaliPicker.setDate(dateStr);
                 }
-                
-                if(tglkembaliPicker.selectedDates[0]) {
+
+                if (tglkembaliPicker.selectedDates[0]) {
                     updateTotal(dateStr, tglkembaliPicker.selectedDates[0]);
                 }
             }
         });
-
-        // Inisialisasi flatpickr untuk tanggal kembali
         const tglkembaliPicker = flatpickr("#tglkembali", {
             dateFormat: "Y-m-d",
             minDate: "today",
             onChange: function(selectedDates, dateStr) {
-                if(!tglkeluarPicker.selectedDates[0]) {
+                if (!tglkeluarPicker.selectedDates[0]) {
                     alert('Silahkan pilih tanggal keluar terlebih dahulu');
                     this.clear();
                     return;
                 }
-                
-                // Jika tanggal kembali lebih kecil dari tanggal keluar
-                if(selectedDates[0] < tglkeluarPicker.selectedDates[0]) {
+                if (selectedDates[0] < tglkeluarPicker.selectedDates[0]) {
                     alert('Tanggal kembali tidak boleh lebih kecil dari tanggal keluar');
                     this.setDate(tglkeluarPicker.selectedDates[0]);
                     return;
                 }
-                
+
                 updateTotal(tglkeluarPicker.selectedDates[0], dateStr);
             }
         });

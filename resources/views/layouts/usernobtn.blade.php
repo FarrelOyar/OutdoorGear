@@ -11,14 +11,13 @@
 </head>
 
 <body class="bg-slate-300">
-    <!-- Navbar -->
     <nav class="bg-blue-500 p-4">
         <div class="container mx-auto flex justify-between items-center">
             <label class="text-white font-bold flex items-center">
-                <img src="{{asset('storage/aset/logo.png')}}" alt="" class="w-12 h-12 rounded-full mr-2">
+                <img src="{{ asset('storage/aset/logo.png') }}" alt="" class="w-12 h-12 rounded-full mr-2">
                 Outdoorgear
             </label>
-        </div>  
+        </div>
     </nav>
     <script>
         document.getElementById('logoutButton').addEventListener('click', function() {
@@ -27,9 +26,9 @@
             }
         });
     </script>
-        @yield('container')
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+    @yield('container')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </body>
 
 </html>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Barang;
 use Illuminate\Console\View\Components\Alert;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -10,11 +11,18 @@ use Illuminate\Support\Facades\Auth;
 
 class AutentikasiController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('auth');
-        
-    // }
+    public function landingpage(){
+        return view('guest.landingpage');
+    }
+    public function katalog(Request $request){
+        $keyword = $request->keyword;
+        $data_barang = Barang::where('nama_barang', 'like', '%' . $keyword . '%')
+            ->orWhereHas('kategori', function ($query) use ($keyword) {
+                $query->where('kategori_name', 'like', '%' . $keyword . '%');
+            })
+            ->paginate(8);
+        return view('guest.katalog',compact('data_barang'));
+    }
     public function login()
     {
         if (Auth::check()) {

@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resi Outdoorgear Rental</title>
     <style>
-        /* Reset CSS */
         * {
             margin: 0;
             padding: 0;
@@ -15,7 +14,6 @@
 
         @page {
             size: F4;
-            /* 210mm x 330mm */
             margin: 1.5cm;
         }
 
@@ -35,7 +33,6 @@
         .container {
             width: 100%;
             max-width: 210mm;
-            /* F4 width */
             margin: 0 auto;
             background: white;
             padding: 20px;
@@ -132,7 +129,6 @@
             font-weight: bold;
         }
 
-        /* Specific adjustments for total info */
         .total-info {
             width: 100%;
             margin: 15px 0;

@@ -11,16 +11,17 @@ use App\Models\TransaksiDetail;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
-use Faker\Core\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Termwind\Components\Dd;
 use Illuminate\Support\Facades\File as FacadesFile;
 use App\Enums\TransactionStatus;
-
+use Illuminate\Auth\Events\Validated;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
+    //admin controller
     public function index()
     {
         $denda = Denda::get();
@@ -28,10 +29,21 @@ class UserController extends Controller
         $total = 0;
         return view('admin.index', compact('transaksi', 'denda'));
     }
-    public function history()
+    public function history(Request $request)
     {
         $denda = Denda::get();
-        $transaksi = Transaksi::with('transaksi_details')->where('status', 2)->get();
+        $transaksi = Transaksi::with(['transaksi_details', 'user'])
+            ->where('status', 2);
+
+        // Jika ada filter tanggal
+        if ($request->tglkeluar && $request->tglkembali) {
+            $transaksi->where(function ($query) use ($request) {
+                $query->whereBetween('tanggal_keluar', [$request->tglkeluar, $request->tglkembali])
+                    ->orWhereBetween('tanggal_kembali', [$request->tglkeluar, $request->tglkembali]);
+            });
+        }
+
+        $transaksi = $transaksi->get();
         $total = 0;
         return view('admin.history', compact('transaksi', 'denda'));
     }
@@ -46,11 +58,90 @@ class UserController extends Controller
             })->paginate(5);
         return view('admin.databarang', compact('data_barang'), compact('kategori'));
     }
-
     public function datauser()
     {
         $user = DB::table('users')->where('role', 'user')->get();
         return view('admin.datauser', compact('user'));
+    }
+    public function tambahbarangprocess(Request $request)
+    {
+        try {
+            $request->validate([
+                'nama_barang' => ['required'],
+                'harga_barang' => ['required'],
+                'kategori' => ['required'],
+                'deskripsi' => ['required'],
+                'stock' => ['required'],
+                'foto_barang' => ['required', 'file', 'mimes:jpeg,png,jpg,gif,bmp,svg'],
+            ], [
+                'foto_barang.required' => 'Foto KTP wajib diisi',
+                'foto_barang.mimes' => 'Format file tidak valid,Hanya diperbolehkan:jpeg,png,jpg,gif,bmp,svg'
+            ]);
+            $num = random_int('1111', '9999');
+
+            $exten = $request->file('foto_barang')->getClientOriginalExtension();
+            $name = $request->nama_barang . '-' . $num . '.' . $exten;
+            $request->file('foto_barang')->storeAs('foto_barang', $name);
+
+            Barang::insert([
+                'nama_barang' => $request->nama_barang,
+                'harga_barang' => $request->harga_barang,
+                'id_kategori' => $request->kategori,
+                'foto_barang' => $name,
+                'deskripsi' => $request->deskripsi,
+                'stock' => $request->stock,
+            ]);
+            return redirect('data_barang')->with('barangSuccess', 'Barang berhasil ditambahkan');
+        } catch (ValidationException $e) {
+            return back()->with('validationError', $e->validator->errors()->first());
+        }
+    }
+    public function tambahkategori(Request $request)
+    {
+        try {
+            $request->validate([
+                'nama_kategori' => ['required'],
+
+            ]);
+            Kategori::insert([
+                'kategori_name' => $request->nama_kategori
+            ]);
+            return redirect('data_barang')->with('kategoriSuccess', 'Kategori Berhasil Ditambahkan!');
+        } catch (ValidationException $e) {
+            return back()->with('validationError', $e->validator->errors()->first());
+        }
+    }
+    public function updatebarang(Request $request)
+    {
+        if ($request->hasFile('foto_barang')) {
+            $request->validate([
+                'foto_barang' => ['file', 'mimes:jpeg,png,jpg,gif,bmp,svg'],
+            ], [
+                'foto_barang.mimes' => 'Format file tidak valid,Hanya diperbolehkan:jpeg,png,jpg,gif,bmp,svg'
+            ]);
+        }
+
+        $barang = Barang::findOrFail($request->id);
+        $name = $barang->foto_barang;
+        if ($request->hasFile('foto_barang')) {
+            $imagePath = public_path('storage/foto_barang/' . $barang->foto_barang);
+            if (FacadesFile::exists($imagePath)) {
+                FacadesFile::delete($imagePath);
+            }
+            $num = random_int('1111', '9999');
+            $exten = $request->file('foto_barang')->getClientOriginalExtension();
+            $name = $request->nama_barang . '-' . $num . '.' . $exten;
+            $request->file('foto_barang')->storeAs('foto_barang', $name);
+        }
+        DB::table('barangs')->where('id', $request->id)->update([
+            'nama_barang' => $request->nama_barang,
+            'harga_barang' => $request->harga_barang,
+            'id_kategori' => $request->kategori,
+            'foto_barang' => $name,
+            'stock' => $request->stock,
+            'barang_keluar' => $request->barang_keluar,
+        ]);
+        return redirect('data_barang')->with('editbarangSuccess', 'Barang berhasil diedit!');
     }
     public function deleteuser($id)
     {
@@ -59,14 +150,10 @@ class UserController extends Controller
 
             $user = User::findOrFail($id);
             $imagePath = public_path('storage/foto_ktp/' . $user->foto_ktp);
-
-            // Hapus user
             if ($user->delete()) {
-                // Hapus foto
                 if (FacadesFile::exists($imagePath)) {
                     FacadesFile::delete($imagePath);
                 }
-
                 DB::commit();
                 return redirect('data_user')->with('deleteSuccess', 'User berhasil dihapus');
             }
@@ -80,86 +167,15 @@ class UserController extends Controller
                 ->with('deleteError', 'Gagal menghapus user. Silakan coba lagi.');
         }
     }
-    public function tambahbarangprocess(Request $request)
-    {
-        $request->validate([
-            'foto_barang' => ['required', 'file', 'mimes:jpeg,png,jpg,gif,bmp,svg'],
-        ], [
-            'foto_barang.required' => 'Foto KTP wajib diisi',
-            'foto_barang.mimes' => 'Format file tidak valid,Hanya diperbolehkan:jpeg,png,jpg,gif,bmp,svg'
-        ]);
-        $num = random_int('1111', '9999');
-
-        $exten = $request->file('foto_barang')->getClientOriginalExtension();
-        $name = $request->nama_barang . '-' . $num . '.' . $exten;
-        $request->file('foto_barang')->storeAs('foto_barang', $name);
-
-        Barang::insert([
-            'nama_barang' => $request->nama_barang,
-            'harga_barang' => $request->harga_barang,
-            'id_kategori' => $request->kategori,
-            'foto_barang' => $name,
-            'deskripsi' => $request->deskripsi,
-            'stock' => $request->stock,
-        ]);
-        return redirect('data_barang')->with('barangSuccess', 'Barang berhasil ditambahkan');
-    }
-    public function updatebarang(Request $request)
-    {
-        // Validasi hanya jika ada file foto yang diupload
-        if ($request->hasFile('foto_barang')) {
-            $request->validate([
-                'foto_barang' => ['file', 'mimes:jpeg,png,jpg,gif,bmp,svg'],
-            ], [
-                'foto_barang.mimes' => 'Format file tidak valid,Hanya diperbolehkan:jpeg,png,jpg,gif,bmp,svg'
-            ]);
-        }
-
-        $barang = Barang::findOrFail($request->id);
-        $name = $barang->foto_barang; // Menggunakan foto lama sebagai default
-
-        // Proses upload foto baru hanya jika ada file yang diupload
-        if ($request->hasFile('foto_barang')) {
-            // Hapus foto lama
-            $imagePath = public_path('storage/foto_barang/' . $barang->foto_barang);
-            if (FacadesFile::exists($imagePath)) {
-                FacadesFile::delete($imagePath);
-            }
-
-            // Upload foto baru
-            $num = random_int('1111', '9999');
-            $exten = $request->file('foto_barang')->getClientOriginalExtension();
-            $name = $request->nama_barang . '-' . $num . '.' . $exten;
-            $request->file('foto_barang')->storeAs('foto_barang', $name);
-        }
-
-        // Update data barang
-        DB::table('barangs')->where('id', $request->id)->update([
-            'nama_barang' => $request->nama_barang,
-            'harga_barang' => $request->harga_barang,
-            'id_kategori' => $request->kategori,
-            'foto_barang' => $name, // Akan menggunakan foto lama jika tidak ada upload baru
-            'stock' => $request->stock,
-            'barang_keluar' => $request->barang_keluar,
-        ]);
-
-        return redirect('data_barang')->with('editbarangSuccess', 'Barang berhasil diedit!');
-    }
-
-
-
     public function deletebarang($id)
     {
         try {
             $barang = Barang::findOrFail($id);
 
-            // Cek apakah barang memiliki transaksi terkait
-            if ($barang->transaksiDetails()->exists()) {
+            if ($barang->transaksi_details()->exists()) {
                 return redirect()->back()
                     ->with('deleteError', 'Barang tidak dapat dihapus karena masih terkait dengan data transaksi');
             }
-
-            // Jika tidak ada transaksi terkait, lanjut hapus
             $imagePath = public_path('storage/foto_barang/' . $barang->foto_barang);
             if (FacadesFile::exists($imagePath)) {
                 FacadesFile::delete($imagePath);
@@ -168,11 +184,68 @@ class UserController extends Controller
             $barang->delete();
             return redirect('data_barang')->with('deleteSuccess', 'Barang berhasil dihapus');
         } catch (\Exception $e) {
+            // dd($e);
             return redirect()->back()
                 ->with('deleteError', 'Gagal menghapus barang. Silakan coba lagi.');
         }
     }
+    public function tambahdenda(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'jenisdenda' => 'required',
+                'jumlahdenda' => 'required'
+            ], [
+                'jenisdenda.required' => 'Form jenis denda harus di isi!!!',
+                'jumlahdenda.required' => 'Form jumlah denda harus di isi!!!'
+            ]);
 
+            Denda::insert([
+                'tipe_denda' => $request->jenisdenda,
+                'jumlah_denda' => $request->jumlahdenda
+            ]);
+            return back()->with('dendaSuccess', 'Berhasil ditambahkan!');
+        } catch (ValidationException $e) {
+            return back()->with('validationError', $e->validator->errors()->first());
+        }
+    }
+    public function transaksiselesai(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $items = $request->items;
+            $totalDenda = 0;
+            foreach ($items as $item) {
+                $denda = Denda::find($item['id_denda']);
+                $barang = Barang::find($item['id_barang']);
+                $hargaSewa = (float) str_replace('.', '', $barang->harga_barang);
+                $dendaPerItem = $hargaSewa * $denda->jumlah_denda * $item['qty'];
+                $totalDenda += $dendaPerItem;
+
+                $barang->barang_keluar -= $item['qty'];
+                $barang->save();
+
+                TransaksiDetail::where('id', $item['id_detail'])
+                    ->update([
+                        'id_denda' => $item['id_denda'],
+                        'total_denda' => $dendaPerItem
+                    ]);
+            }
+
+            Transaksi::where('id', $request->id_transaksi)
+                ->update([
+                    'status' => TransactionStatus::SELESAI->value,
+                ]);
+
+            DB::commit();
+            return redirect()->back()->with('selesaiSuccess', 'Transaksi berhasil diselesaikan');
+        } catch (\Exception $e) {
+            dd($e);
+            DB::rollback();
+            return redirect()->back()->with('error', 'Gagal di selesaikan!!!');
+        }
+    }
+    //user controller
     public function userindex(Request $request)
     {
         $keyword = $request->keyword;
@@ -183,13 +256,7 @@ class UserController extends Controller
             ->paginate(8);
         return view('user.index', compact('data_barang'));
     }
-    public function tambahkategori(Request $request)
-    {
-        Kategori::insert([
-            'kategori_name' => $request->nama_kategori
-        ]);
-        return redirect('data_barang')->with('kategoriSuccess', 'Kategori Berhasil Ditambahkan!');
-    }
+
     public function add_cart(Request $request)
     {
 
@@ -255,9 +322,7 @@ class UserController extends Controller
     }
     public function checkout(Request $request)
     {
-        // dd($request->input());
         DB::beginTransaction();
-
         try {
             $keluar = Carbon::createFromFormat('Y-m-d', $request->tglkeluar);
             $kembali = Carbon::createFromFormat('Y-m-d', $request->tglkembali);
@@ -285,17 +350,12 @@ class UserController extends Controller
                 'tanggal_keluar' => $request->tglkeluar,
                 'tanggal_kembali' => $request->tglkembali,
             ]);
-
-            // Loop through each item and create a transaction detail
             foreach ($request->items as $item) {
                 $barang = Barang::find($item['id_product']);
                 $stocksisa = $barang->stock - $barang->barang_keluar;
-                // dd($stocksisa);
                 if ($stocksisa < $item['qty']) {
                     throw new \Exception("Stock {$barang->nama_barang} tidak mencukupi");
                 }
-
-                // Kurangi stock
                 $barang->barang_keluar += $item['qty'];
                 $barang->save();
 
@@ -307,20 +367,14 @@ class UserController extends Controller
                 ]);
             }
             Cart::where('id_user', auth()->user()->id)->delete();
-            // Commit the transaction
             DB::commit();
 
             return redirect()->route('resi', ['idtransaksi' => $transaction->id]);
         } catch (\Exception $e) {
-            // dd($e);
             DB::rollBack();
             return back()->with('checkoutFail', 'Transaksi Gagal!,Periksa kembali ketersediaan stock!');
         }
     }
-    // public function resi(){
-    //     $transaksi_detail=TransaksiDetail::where('id_')
-    //     return view('user.resi');
-    // }
     public function transaksi()
     {
         $transaksi = Transaksi::where('id_user', auth()->user()->id)->with('transaksi_details')->get();
@@ -367,59 +421,5 @@ class UserController extends Controller
         $pdf->setOption('enable-smart-shrinking', true);
 
         return $pdf->download('Resine-' . $transaksi->no_resi . '.pdf');
-    }
-    public function tambahdenda(Request $request)
-    {
-        Denda::insert([
-            'tipe_denda' => $request->jenisdenda,
-            'jumlah_denda' => $request->jumlahdenda
-        ]);
-        return back()->with('dendaSuccess', 'Berhasil ditambahkan!');
-    }
-    public function transaksiselesai(Request $request)
-    {
-        // dd($request);
-        DB::beginTransaction();
-        try {
-            $items = $request->items;
-            $totalDenda = 0;
-
-            foreach ($items as $item) {
-                // Ambil data denda
-                $denda = Denda::find($item['id_denda']);
-
-                // Ambil data barang
-                $barang = Barang::find($item['id_barang']);
-
-                // Hitung total denda per item
-                $hargaSewa = (float) str_replace('.', '', $barang->harga_barang);
-                $dendaPerItem = $hargaSewa * $denda->jumlah_denda * $item['qty'];
-                $totalDenda += $dendaPerItem;
-
-                // Update stok barang (kurangi barang_keluar sesuai qty)
-                $barang->barang_keluar -= $item['qty'];
-                $barang->save();
-
-                // Simpan detail denda ke transaksi_details
-                TransaksiDetail::where('id', $item['id_detail'])
-                    ->update([
-                        'id_denda' => $item['id_denda'],
-                        'total_denda' => $dendaPerItem
-                    ]);
-            }
-
-            // Update status transaksi menjadi selesai dan total denda
-            Transaksi::where('id', $request->id_transaksi)
-                ->update([
-                    'status' => TransactionStatus::SELESAI->value,
-                ]);
-
-            DB::commit();
-            return redirect()->back()->with('selesaiSuccess', 'Transaksi berhasil diselesaikan');
-        } catch (\Exception $e) {
-            dd($e);
-            DB::rollback();
-            return redirect()->back()->with('error', 'Gagal di selesaikan!!!');
-        }
     }
 }

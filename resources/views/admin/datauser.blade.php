@@ -60,7 +60,7 @@
     <script>
         document.querySelectorAll('.deleteForm').forEach(form => {
             form.addEventListener('submit', function(event) {
-                event.preventDefault(); // Mencegah form submit secara langsung
+                event.preventDefault(); 
 
                 Swal.fire({
                     title: "Are you sure?",
@@ -72,7 +72,6 @@
                     confirmButtonText: "Yes, delete it!"
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Submit form setelah konfirmasi
                         this.submit();
                     }
                 });

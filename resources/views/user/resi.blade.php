@@ -1,13 +1,11 @@
 @extends('layouts.usernobtn')
 @section('container')
     <div class="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-lg my-8">
-        <!-- Header Resi -->
         <div class="text-center border-b-2 pb-4 mb-4">
             <h1 class="text-2xl font-bold">OUTDOORGEAR RENTAL</h1>
             <p class="text-gray-600">Jl. Gunung Kembar No. 99, Malang</p>
         </div>
 
-        <!-- Nomor Resi dan Tanggal -->
         <div class="flex justify-between mb-6">
             <div>
                 <p class="font-semibold">No. Resi: {{ $transaksi->no_resi }}</p>
@@ -15,8 +13,6 @@
             </div>
 
         </div>
-
-        <!-- Informasi Penyewa -->
         <div class="mb-6">
             <h2 class="text-lg font-semibold mb-2">Informasi Penyewa</h2>
             <div class="grid grid-cols-2 gap-4">
@@ -30,7 +26,6 @@
             </div>
         </div>
 
-        <!-- Periode Sewa -->
         <div class="mb-6">
             <h2 class="text-lg font-semibold mb-2">Periode Sewa</h2>
             <div class="grid grid-cols-2 gap-4">
@@ -41,7 +36,6 @@
                     Sewa:</span>{{ $transaksi->tanggal_keluar->diffInDays($transaksi->tanggal_kembali) }} Hari</p>
         </div>
 
-        <!-- Detail Barang -->
         <div class="mb-6">
             <h2 class="text-lg font-semibold mb-2">Detail Barang</h2>
             <table class="w-full">
@@ -74,7 +68,6 @@
             </table>
         </div>
 
-        <!-- Total dan Pembayaran -->
         <div class="border-t-2 pt-4">
             <div class="flex justify-between mb-2">
                 <span class="font-medium">Total Harga per Hari:</span>
@@ -99,7 +92,6 @@
             </div>
         </div>
 
-        <!-- Catatan Penting -->
         <div class="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
             <h3 class="font-semibold text-yellow-800 mb-2">Catatan Penting:</h3>
             <ul class="list-disc list-inside text-sm text-yellow-800 space-y-1">
@@ -109,10 +101,6 @@
             </ul>
         </div>
 
-        <!-- Syarat dan Ketentuan -->
-
-
-        <!-- Tanda Tangan -->
         <div class="mt-8 grid grid-cols-2 gap-4 text-center">
             <div>
                 <p class="font-medium">Petugas</p>
@@ -125,23 +113,14 @@
                 <p>( {{ $transaksi->user->username }} )</p>
             </div>
         </div>
-
-        <!-- Tombol Cetak -->
         <div class="mt-8 flex justify-center space-x-4">
             <a href="/print/{{ $transaksi->id }}"
                 class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition duration-200">Cetak Resi</a>
-            {{-- <form action="{{ route('cetakResi', ['idtransaksi'=>$transaksi->id]) }}" method="get"> --}}
-            {{-- <button class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition duration-200">
-                    Cetak Resi
-                </button> --}}
-            {{-- </form> --}}
             <a href="/transaksi"
                 class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition duration-200">
                 Riwayat Transaksi
             </a>
         </div>
-
-        <!-- Footer Resi -->
         <div class="mt-8 text-center text-sm text-gray-500">
             <p>Terima kasih telah menyewa di OutdoorGear Rental</p>
             <p>Selamat berpetualang!</p>

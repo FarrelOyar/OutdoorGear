@@ -11,7 +11,6 @@
 </head>
 
 <body class="bg-slate-300">
-    <!-- Navbar -->
     <nav class="bg-blue-500 p-4">
         <div class="container mx-auto flex justify-between items-center">
             <a href="/userindex" class="text-white font-bold flex items-center">
@@ -21,7 +20,6 @@
             <ul class="flex space-x-4 items-center">
 
                 <li class="relative">
-                    <!-- Dropdown Button -->
                     <button id="dropdownButton" class="text-white flex items-center focus:outline-none">
                         <span class="mr-2"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -31,7 +29,6 @@
                         </span>
 
                     </button>
-                    <!-- Dropdown Menu -->
                     <div id="dropdownMenu"
                         class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg opacity-0 transform transition-all duration-300 ease-out scale-95 z-10">
                         <div class="block px-4 py-2 text-gray-800 hover:bg-gray-200">
@@ -50,14 +47,14 @@
                             <form id="logoutForm" action="/logout" method="POST" style="display: none;">
                                 @csrf
                             </form>
-                                <div class="flex">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" class="size-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-                                    </svg>
-                                    <button id="logoutButton">Logout</button>
-                                </div>
+                            <div class="flex">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                                </svg>
+                                <button id="logoutButton">Logout</button>
+                            </div>
                         </div>
                         <div class="block px-4 py-2 text-gray-800 hover:bg-gray-200">
                             <div class="flex">
@@ -87,7 +84,6 @@
     </nav>
 
     <script>
-        // Dropdown Toggle Functionality
         const dropdownButton = document.getElementById('dropdownButton');
         const dropdownMenu = document.getElementById('dropdownMenu');
 
@@ -98,7 +94,6 @@
             dropdownMenu.classList.toggle('scale-95');
         });
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
                 dropdownMenu.classList.add('hidden');
@@ -109,7 +104,6 @@
             }
         });
 
-        // Logout confirmation
         document.getElementById('logoutButton').addEventListener('click', function(e) {
             e.preventDefault();
             Swal.fire({

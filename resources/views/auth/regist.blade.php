@@ -7,8 +7,10 @@
     <title>Document</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>    
-<body style="background-image:url(storage/aset/auth.jpg); background-repeat: no-repeat; background-size: cover; background-position: center ">
+</head>
+
+<body
+    style="background-image:url(storage/aset/auth.jpg); background-repeat: no-repeat; background-size: cover; background-position: center ">
     <div class="flex justify-center items-center h-svh">
         <div class="p-8 rounded-lg border shadow-xl bg-black bg-opacity-40">
             <h1 class="font-bold text-center text-3xl text-slate-800 ">Regist!</h1>

@@ -1,5 +1,14 @@
 @extends('layouts.admin')
 @section('container')
+    @if (session('validationError'))
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Ditambahkan!!!',
+                text: "{{ session('validationError') }}"
+            });
+        </script>
+    @endif
     @if (session('kategoriSuccess'))
         <script>
             Swal.fire({
@@ -48,16 +57,12 @@
     <style>
         .description {
             max-height: 100px;
-            /* Batas tinggi untuk tampilan awal */
             overflow: hidden;
-            /* Sembunyikan yang melebihi batas */
             transition: max-height 0.3s ease;
-            /* Animasi saat diperluas */
         }
 
         .description.expanded {
             max-height: 500px;
-            /* Tinggi saat diperluas */
         }
     </style>
 
@@ -133,7 +138,7 @@
     <script>
         document.querySelectorAll('.toggleButton').forEach(button => {
             button.addEventListener('click', function() {
-                console.log('Button clicked!'); // Tambahkan ini untuk debugging
+                console.log('Button clicked!');
                 var id = this.getAttribute('data-target');
                 var description = document.getElementById('description' + id);
                 var moreText = document.getElementById('moreText' + id);
@@ -152,7 +157,7 @@
 
         document.querySelectorAll('.deleteForm').forEach(form => {
             form.addEventListener('submit', function(event) {
-                event.preventDefault(); // Mencegah form submit secara langsung
+                event.preventDefault();
 
                 Swal.fire({
                     title: "Are you sure?",
@@ -164,7 +169,6 @@
                     confirmButtonText: "Yes, delete it!"
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Submit form setelah konfirmasi
                         this.submit();
                     }
                 });
@@ -206,7 +210,8 @@
                                 <label for="deskripsi">Deskripsi:</label><br>
                                 <input type="text" name="deskripsi" id="deskripsi" value="{{ $b->deskripsi }}"><br>
                                 <label for="stock">Stock:</label><br>
-                                <input type="number" name="stock" id="stock" value="{{ $b->stock }}" min="1"><br>
+                                <input type="number" name="stock" id="stock" value="{{ $b->stock }}"
+                                    min="1"><br>
                                 <input type="hidden" name="id" value="{{ $b->id }}">
                                 <input type="hidden" name="barang_keluar" value="{{ $b->barang_keluar }}">
                         </div>
